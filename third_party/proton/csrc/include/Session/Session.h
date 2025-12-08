@@ -33,6 +33,8 @@ public:
 
   size_t getContextDepth();
 
+  Profiler *getProfiler() { return profiler; }
+
 private:
   Session(size_t id, const std::string &path, Profiler *profiler,
           std::unique_ptr<ContextSource> contextSource,
@@ -74,7 +76,6 @@ public:
   ~SessionManager() = default;
 
   size_t addSession(const std::string &path, const std::string &profilerName,
-                    const std::string &profilerPath,
                     const std::string &contextSourceName,
                     const std::string &dataName, const std::string &mode);
 
@@ -113,14 +114,20 @@ public:
                           uint8_t *buffer, size_t size);
 
   void addMetrics(size_t scopeId,
-                  const std::map<std::string, MetricValueType> &metrics);
+                  const std::map<std::string, MetricValueType> &scalarMetrics,
+                  const std::map<std::string, TensorMetric> &tensorMetrics);
+
+  void setMetricKernels(void *tensorMetricKernel, void *scalarMetricKernel,
+                        void *stream);
 
   void setState(std::optional<Context> context);
 
 private:
+  Profiler *validateAndSetProfilerMode(Profiler *profiler,
+                                       const std::string &mode);
+
   std::unique_ptr<Session> makeSession(size_t id, const std::string &path,
                                        const std::string &profilerName,
-                                       const std::string &profilerPath,
                                        const std::string &contextSourceName,
                                        const std::string &dataName,
                                        const std::string &mode);
@@ -212,6 +219,8 @@ private:
   std::vector<std::pair<InstrumentationInterface *, size_t>>
       instrumentationInterfaceCounts;
   // {context source, active count}
+  std::vector<std::pair<MetricInterface *, size_t>> metricInterfaceCounts;
+  // {metric, active count}
   std::vector<std::pair<ContextSource *, size_t>> contextSourceCounts;
 };
 
