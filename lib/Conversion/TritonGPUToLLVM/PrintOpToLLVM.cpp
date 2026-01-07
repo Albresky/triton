@@ -164,9 +164,11 @@ struct PrintOpConversion : public ConvertOpToLLVMPattern<triton::PrintOp> {
       auto isSignedOperands =
           llvm::SmallVector<bool>(printfOperands.size(), isSigned);
       if (i == 0) {
+        // llvm::errs() << "[DEBUG] i=" << i << " calling llPrintf\n";
         formatStrValue = llPrintf(formatStr, printfOperands, isSignedOperands,
                                   rewriter, &formatStrByteCount);
       } else {
+        // llvm::errs() << "[DEBUG] i=" << i << " calling targetInfo.printf\n";
         targetInfo.printf(rewriter, formatStrValue, formatStrByteCount,
                           printfOperands, isSignedOperands);
       }
